@@ -31,3 +31,4 @@ I read the article [5 challenging app ideas you can start building today](https:
 - Support to nested lists
 - Keyboard shortcuts
 - Insert color from hex
+- Resizing images
