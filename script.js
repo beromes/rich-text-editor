@@ -45,20 +45,6 @@ document.getElementById("content").addEventListener("input", function() {
     
     });
 
-    /*selectableGroups = document.getElementsByClassName('selectable-group');
-
-
-    // Check Selecteds 
-    Array.prototype.forEach.call(selectableGroups, function(el) {
-        Array.prototype.forEach.call(el.children, function(action) {
-            if (document.queryCommandState(action.id)) {
-                action.classList.add('selected')
-            }else {
-                action.classList.remove('selected');
-            }
-        });
-    }); */
-
     // Updates name and size inputs
     $("#fontName").val(document.queryCommandValue('fontName'));
     $("#fontSize").val(document.queryCommandValue('fontSize'));
@@ -212,6 +198,7 @@ $("#backColor").click(function () {
 
 });
 
+// Color selections listener
 $(".color").click(function () {
     
     // Apply change at contentEditable
