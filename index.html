@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Custom Rich-Text Editor</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+
+    <style>
+    
+        body {
+            background-color: #e5e5e5;
+        }
+
+        .card {
+            width: calc(100% - 100px);
+            padding: 50px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            transition: 0.3s;
+            background-color: white;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            background-color: #e5e5e5;
+            border-top: 1px solid #ddd;
+            border-left: 1px solid #ddd;
+            border-right: 1px solid #ddd;
+        }
+
+        .actions a {
+            /*border-right: 1px solid black;*/
+            color: black;
+            padding: 10px 8px;
+            transition: 0.3s;
+        }
+
+        .actions a:hover {
+            background-color: #2a8fd65e;
+        }
+
+        .actions .selectable-group .selected {
+            background-color: #1771b1;
+        }
+
+        .actions .selectable-group .selected i {
+            /*font-weight: bold;*/
+            color: white;
+        }
+
+        #content {
+            min-height: 200px;
+            padding: 10px;
+            border-left: 1px solid #ddd;
+            border-right: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+
+        #content:focus {
+            outline: none;
+            box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2);
+        }
+
+        .separator {
+            width: 5px;
+            margin-right: 5px;        
+            border-right: 1px solid #c4c4c4;
+        }
+
+        .selectable-group {
+            display: flex;
+        }
+
+
+        #link-insert {
+            position: absolute;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: #2a8fd6;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        .dropdown {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+        }
+
+        .invisible {
+            opacity: 0;
+        }
+
+        #tooltip {
+            transition: 0.2s;
+            position: absolute;
+            background: #000000bd;
+            padding: 3px 5px;
+            font-size: 12px;
+            color: white;
+            border-radius: 3px;
+        }
+
+        #tooltip div:first-child, #link-insert div:first-child, #image-insert .arrow {
+            position: absolute;
+            top: -5px;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 5px solid;
+        }
+
+        #tooltip div:first-child {
+            left: calc(50% - 5px);
+            border-bottom-color: #000000bd;
+        }
+
+        #link-insert div:first-child {
+            left: calc(27px);
+            border-bottom-color: #2a8fd6;
+        }
+
+        #image-insert .arrow {
+            left: calc(50% - 5px);
+            border-bottom-color: #2a8fd6;
+        }
+
+        #image-insert {
+            transition: 0.2s;
+            position: absolute;
+            border: 1px solid #2a8fd6;
+            border-radius: 10px;
+            background-color: white;
+            opacity: 0;
+        }
+
+        #image-insert .header {            
+            text-align: center;
+            background: #2a8fd6;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            margin-bottom: 10px;
+            padding: 5px 0px;
+            color: white;
+        }
+
+        #image-insert input {
+            border-top-left-radius: 5px;
+            border-bottom-left-radius: 5px;
+            border: 1px solid #ddd;
+            outline: none;
+            padding: 6px;
+        }
+
+        #image-insert button, #image-insert label {
+            background-color: #2a8fd6;
+            color: white;
+            outline: none;
+            border: 0px;
+        }
+
+        #image-insert input[type=file] {
+            opacity: 0;
+            position: absolute;
+            z-index: -1;
+        } 
+
+        label {
+   cursor: pointer;
+   /* Style as you please, it will become the visible UI component. */
+}
+
+#upload-photo {
+   opacity: 0;
+   position: absolute;
+   z-index: -1;
+}
+
+    
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>My Custom Rich-Text Editor</h1>
+        <div class="editor">
+            <div class="actions">
+                <div class="dropdown">                  
+                    <select id="fontName">
+                        <option value="Arial">Arial</option>
+                        <option value="Montserrat">Montserrat</option>
+                        <option value="Roboto">Roboto</option>
+                        <option value="Times">Times New Roman</option>
+                    </select>
+                </div>
+                <div class="dropdown">                  
+                    <select id="fontSize">
+                        <option value="1">Small</option>
+                        <option value="3" selected>Body</option>
+                        <option value="5">Heading</option>
+                        <option value="6">Title</option>
+                      </select>
+                </div>
+                <div class="separator"></div>
+                <div class="selectable-group">
+                    <a href="javascprit:void(0)" id="bold"><i class="fa fa-bold fa-fw"></i></a>
+                    <a href="javascprit:void(0)" id="italic"><i class="fa fa-italic fa-fw"></i></a>
+                    <a href="javascprit:void(0)" id="underline"><i class="fa fa-underline"></i></a>
+                </div>
+                <div class="separator"></div>
+                <div class="selectable-group unique">
+                    <a href="javascprit:void(0)" id="justifyLeft"><i class="fa fa-align-left"></i></a>
+                    <a href="javascprit:void(0)" id="justifyCenter"><i class="fa fa-align-center"></i></a>
+                    <a href="javascprit:void(0)" id="justifyFull"><i class="fa fa-align-justify"></i></a>
+                    <a href="javascprit:void(0)" id="justifyRight"><i class="fa fa-align-right"></i></a>
+                </div>
+                <div class="separator"></div>
+                <a href="javascprit:void(0)" id="createLink"><i class="fa fa-link"></i></a>
+                <a href="javascprit:void(0)" id="insertImage"><i class="fa fa-image"></i></a>
+                <div class="separator"></div>
+                <a href="javascprit:void(0)" id="insertUnorderedList"><i class="fa fa-list fa-fw"></i></a>
+                <a href="javascprit:void(0)" id="insertOrderedList"><i class="fa fa-list-ol fa-fw"></i></a>
+                <a href="javascprit:void(0)" id="indent"><i class="fa fa-indent"></i></a>
+                <a href="javascprit:void(0)" id="outdent"><i class="fa fa-outdent"></i></a>
+
+            </div>
+            <div id="content" contenteditable="true"></div>
+
+
+            <div id="link-insert">
+                <div></div>
+                <input type="text" placeholder="https://">
+                <button>Enviar</button>
+            </div>
+
+            <div id="image-insert">
+                <div class="arrow"></div>
+                <div class="header">Inserir imagem</div>
+                <div style="padding: 10px; display: flex;">
+                    <input type="text" placeholder="https://">
+                    <button id="insertImageFromUrl" style="border-top-right-radius: 5px; border-bottom-right-radius: 5px;">OK</button>
+                </div>
+                <div style="text-align: center; padding: 10px;">
+                    <label for="uploadImageFromComputer" style="padding: 7px 10px; border-radius: 5px; font-size: 13px;">Escolher Imagem</label>
+                    <input type="file" id="uploadImageFromComputer" name="avatar" accept="image/png, image/jpeg">
+                    <!--<button id="uploadImageFromComputer" style="padding: 7px 10px; border-radius: 5px">Escolher Imagem</button>-->
+                </div>            
+            </div>
+
+            <div id="tooltip" class="invisible">
+                <div></div>
+            </div>
+        </div>                
+    </div>
+
+    <!-- Font Awesone -->
+    <script src="https://use.fontawesome.com/80b092bb03.js"></script>
+
+    <!-- jQuery-->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+
+    <script>
+
+        const tooltips = {
+            "bold": "Bold (Ctrl + B)",
+            "italic": "Italic (Ctrl + I)",
+            "underline": "Undeline (Ctrl + U)",
+            "fontSize": "Font Size (Ctrl + F)",
+            "justifyLeft": "Align left (Ctrl + F)",
+            "justifyCenter": "Align center (Ctrl + F)",
+            "justifyRight": "Align right (Ctrl + F)",
+            "justifyFull": "Justify content (Ctrl + F)",
+            "createLink": "Insert link",
+            "insertImage": "Insert image",
+            "insertUnorderedList": "Unordered list",
+            "insertOrderedList": "Ordered list",
+            "indent": "Indent",
+            "outdent": "Outdent",
+        };
+
+
+        format('fontSize', 3)
+        format('fontName', 'Arial');
+
+        // Contenteditable listener
+        document.getElementById("content").addEventListener("input", function() {
+            selectableGroups = document.getElementsByClassName('selectable-group');
+            Array.prototype.forEach.call(selectableGroups, function(el) {
+                Array.prototype.forEach.call(el.children, function(action) {
+                    if (document.queryCommandState(action.id)) {
+                        action.classList.add('selected')
+                    }else {
+                        action.classList.remove('selected');
+                    }
+                });
+            });
+
+            $("#fontName").val(document.queryCommandValue('fontName'));
+            $("#fontSize").val(document.queryCommandValue('fontSize'));
+
+
+        }, false);
+
+        // actions listener
+        $(".actions a" ).click(function() {
+
+            let action = $(this)[0];
+            let parent = $(action.parentNode)[0];
+            
+            // Exec command
+            format($(this)[0].id);
+
+            // Toggle selection
+            if (action.classList.contains('selected')) {
+                action.classList.remove('selected');
+            }else {
+                if (parent.classList.contains('unique')) {    
+                    for (let i=0; i<parent.children.length; i++) {
+                        parent.children[i].classList.remove('selected');
+                    }
+                }  
+                action.classList.add('selected');                      
+            }    
+
+        });
+
+        $(".actions #createLink").click(function() {
+            $("#link-insert").css({
+                'left': this.offsetLeft - 15,
+                'top': this.offsetTop + this.offsetWidth + 5,
+                'display': 'block'
+            });
+        });
+
+        $(".actions #insertImage").click(function() {
+            $("#image-insert").css({
+                'left': this.offsetLeft  + (this.offsetWidth / 2) - ($("#image-insert")[0].offsetWidth / 2),
+                'top': this.offsetTop + this.offsetWidth + 5,
+                'opacity': '1'
+            });
+        });
+        
+
+        // Insert link button listener
+        $("#link-insert button").click(function() {
+            format('createLink', $('#link-insert input').val());
+            $("#link-insert").css('display', 'none');
+        });
+
+
+        // Insert image from url button listener
+        $("#insertImageFromUrl").click(function () {
+            format('insertImage', $('#image-insert input').val())
+            $("#image-insert").css('opacity', '0');
+        });
+
+        $("#uploadImageFromComputer").change(function () {
+            var selectedFile = this.files[0];
+
+            var reader = new FileReader();
+
+            reader.onload = function(event) {                
+                format('insertImage', event.target.result);
+            };
+
+            reader.readAsDataURL(selectedFile);
+
+            $("#image-insert").css('opacity', '0');
+        });
+
+        // Select listener
+        $(".dropdown select").change(function() {
+            format(this.id, this.id == 'fontSize' ? +this.value : this.value)
+        })
+
+        // Hover listener
+        $(".actions a").hover(function() {
+            const tooltipElement = $("#tooltip")[0];
+            const actionElement = $(this)[0];
+
+            if (tooltipElement.classList.contains('invisible') && tooltips[actionElement.id]) {
+                tooltipElement.innerHTML = '<div></div>' + tooltips[actionElement.id];                
+
+                $("#tooltip").css({
+                    'left': actionElement.offsetLeft + (actionElement.offsetWidth /2) - (tooltipElement.offsetWidth / 2),
+                    'top': actionElement.offsetTop + actionElement.offsetHeight + 5,
+                });
+
+                tooltipElement.classList.remove('invisible');
+            
+            }else {
+                tooltipElement.classList.add('invisible');
+            }
+        });
+
+
+        // Execute a command at the editor
+        function format(command, value) {            
+            $("#content").focus();           
+            document.execCommand(command, false, value);
+        }
+
+        function getCursorXY(e) {
+            return {
+                x: event.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft),
+                y: event.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop)
+            }
+        }
+
+    </script>
+</body>
+</html>
