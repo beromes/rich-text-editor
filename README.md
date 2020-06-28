@@ -5,6 +5,11 @@ A custom rich-text editor, built with only HTML, CSS, and JS (using the jQuery l
 I read the article [5 challenging app ideas you can start building today](https://medium.com/better-programming/here-are-5-challenging-app-ideas-you-can-start-building-today-jan-2020-78cd4fb45996) and thought it was a good idea to start with the rich-text editor
 
 
+## Usage Example
+
+![Example image](https://github.com/beromes/rich-text-editor/blob/master/example.png)
+
+
 ## Features
 
 1. Bold, italic and underline
